@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Automated EpiPen Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h1>Automated EpiPen Monitoring System</h1>
+
+    <div class="status-card">
+        <h2 id="bpmValue">-- BPM</h2>
+        <p id="statusText">Monitoring...</p>
+    </div>
+
+    <div class="card">
+        <canvas id="heartChart"></canvas>
+    </div>
+</div>
+
+<script>
+const ctx = document.getElementById('heartChart').getContext('2d');
+
+let heartData = {
+    labels: [],
+    datasets: [{
+        label: 'Heart Rate (BPM)',
+        data: [],
+        borderColor: '#e63946',
+        borderWidth: 3,
+        fill: false,
+        tension: 0.4
+    }]
+};
+
+let chart = new Chart(ctx, {
+    type: 'line',
+    data: heartData,
+    options: {
+        responsive: true,
+        animation: false,
+        scales: {
+            y: {
+                min: 30,
+                max: 160
+            }
+        }
+    }
+});
+
+function updateData() {
+    fetch('/heartbeat')
+        .then(response => response.json())
+        .then(data => {
+
+            const bpm = data.heartbeat;
+            const now = new Date().toLocaleTimeString();
+
+            document.getElementById("bpmValue").innerText = bpm + " BPM";
+
+            if (bpm < 55 || bpm > 120) {
+                document.getElementById("statusText").innerText = "⚠ Anomaly Detected!";
+                document.querySelector(".status-card").classList.add("alert");
+            } else {
+                document.getElementById("statusText").innerText = "Normal Monitoring";
+                document.querySelector(".status-card").classList.remove("alert");
+            }
+
+            if (heartData.labels.length > 25) {
+                heartData.labels.shift();
+                heartData.datasets[0].data.shift();
+            }
+
+            heartData.labels.push(now);
+            heartData.datasets[0].data.push(bpm);
+
+            chart.update();
+        });
+}
+
+setInterval(updateData, 2000);
+</script>
+
+</body>
+</html>
