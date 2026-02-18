@@ -14,8 +14,9 @@ Arduino-based hardware integration
 
 Technologies Used :  
 
-Python
-Flask
-Twilio API
-Arduino
-HTML/CSS
+-Python
+-Flask
+-Twilio API
+-Arduino
+-HTML/CSS
+
